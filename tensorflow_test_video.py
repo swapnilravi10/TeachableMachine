@@ -21,21 +21,22 @@ model = tensorflow.keras.models.load_model('keras_model.h5')
 # Create the array of the right shape to feed into the keras model
 # The 'length' or number of images you can put into the array is
 # determined by the first position in the shape tuple, in this case 1.
-data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+data = np.ndarray(shape=(1, 224, 224), dtype=np.float32)
 
 while True:
     check, frame = video.read()
 
+    gray_image = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     # resize the image to a 224x224 with the same strategy as in TM2:
     # resizing the image to be at least 224x224 and then cropping from the center
     size = (224, 224)
-    image = cv2.resize(frame, size)
+    image = cv2.resize(gray_image, size)
 
     # turn the image into a numpy array
     image_array = np.asarray(image)
 
     #normalize the image
-    normalized_image_array = (image_array.astype(np.float32) / 127.0)
+    # normalized_image_array = (image_array.astype(np.float32) / 127.0)
 
     face = face_cascade.detectMultiScale(frame,scaleFactor=1.05,minNeighbors=3)
 
@@ -43,12 +44,13 @@ while True:
         rectangle = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 2)
 
         #Load the image into the array
-        data[0] = normalized_image_array
+        data[0] = image_array
 
         # run the inference
         prediction = model.predict(data)
         print(prediction)
 
+        ##get index number
         for value in prediction:
             index = np.where(value == np.amax(value))
             index_number = int(index[0])
